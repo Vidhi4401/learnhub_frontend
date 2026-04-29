@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Student Performance — Faculty Portal</title>  <link rel="stylesheet" href="../css/theme.css">
+  <link rel="stylesheet" href="css/main.css">
+<script src="../js/config.js"></script>
+  <script src="../js/theme-manager.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  .back-btn { display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--muted);text-decoration:none;margin-bottom:22px;padding:7px 14px;background: var(--page-bg);border:1px solid var(--border);border-radius:8px;transition:background .15s; }
+  .back-btn:hover { background:var(--page-bg); }
+
+  .hero-card { background:var(--white);border:1px solid var(--border);border-radius:18px;padding:26px 30px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap; }
+  .hero-left  { display:flex;align-items:center;gap:18px; }
+  .big-avatar { width:66px;height:66px;border-radius:16px;background:linear-gradient(135deg,#7c3aed,#0ea5e9);color:#fff;font-size:26px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+  .hero-name  { font-size:21px;font-weight:800;color:var(--ink);margin-bottom:3px; }
+  .hero-email { font-size:13px;color:var(--muted);margin-bottom:8px; }
+  .hero-tags  { display:flex;gap:8px;flex-wrap:wrap; }
+  .hero-tag   { padding:3px 12px;border-radius:20px;font-size:12px;font-weight:700; }
+  .tag-purple { background:rgba(109,40,217,0.12);color:#a78bfa; }
+  .tag-blue   { background:rgba(29,78,216,0.12);color:#93c5fd; }
+
+  .hero-right { display:flex;gap:14px;flex-wrap:wrap; }
+  .hero-stat  { text-align:center;min-width:76px; }
+  .hero-stat-val   { font-size:22px;font-weight:800;color:var(--ink); }
+  .hero-stat-label { font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.4px;margin-top:2px; }
+
+  .verdict-row { display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:20px; }
+  .v-card { background:var(--white);border:1px solid var(--border);border-radius:14px;padding:18px 20px; }
+  .v-label { font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:8px; }
+  .v-value { font-size:25px;font-weight:800;color:var(--ink); }
+
+  .tabs-bar { display:flex;gap:4px;margin-bottom:20px;background:var(--page-bg);border-radius:12px;padding:4px;width:fit-content; }
+  .tab-btn  { padding:8px 20px;border-radius:9px;border:none;background:none;font-family:inherit;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s; }
+  .tab-btn.active { background:var(--white);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.1); }
+  .tab-pane { display:none; }
+  .tab-pane.active { display:block; }
+
+  .panel { background:var(--white);border:1px solid var(--border);border-radius:16px;padding:22px 26px;margin-bottom:18px; }
+  .panel-title { font-size:15px;font-weight:700;color:var(--ink);margin-bottom:16px; }
+
+  .eng-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:18px; }
+  .eng-card { background:var(--white);border:1px solid var(--border);border-radius:14px;padding:20px;text-align:center; }
+  .eng-title { font-size:13px;font-weight:700;color:var(--ink);margin-bottom:12px; }
+  .donut-box { position:relative;height:128px;margin-bottom:12px; }
+  .donut-center { position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:17px;font-weight:800;color:var(--ink); }
+  .eng-stat { font-size:12px;color:var(--muted); }
+  .eng-bar-wrap { display:flex;align-items:center;gap:8px;text-align:left;margin-top:10px; }
+  .eng-bar-bg   { flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden; }
+  .eng-bar-fill { height:100%;border-radius:3px; }
+  .eng-bar-label{ font-size:12px;font-weight:600;min-width:34px; }
+
+  .charts-row { display:grid;grid-template-columns:1.5fr 1fr;gap:16px;margin-bottom:18px; }
+  .chart-box  { height:250px;position:relative; }
+
+  .perf-table { width:100%;border-collapse:collapse; }
+  .perf-table th { font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.4px;padding:10px 14px;text-align:left;background:var(--page-bg);border-bottom:1px solid var(--border); }
+  .perf-table td { padding:12px 14px;font-size:13.5px;border-bottom:1px solid var(--border); }
+  .perf-table tr:last-child td { border-bottom:none; }
+
+  .score-bar-wrap { display:flex;align-items:center;gap:8px; }
+  .score-bar-bg   { flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;min-width:70px; }
+  .score-bar-fill { height:100%;border-radius:3px; }
+
+  .activity-row { display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border); }
+  .activity-row:last-child { border-bottom:none; }
+  .act-title { font-size:14px;font-weight:600;color:var(--ink); }
+  .act-sub   { font-size:12px;color:var(--muted);margin-top:2px; }
+  .score-pill { padding:3px 12px;border-radius:20px;font-size:13px;font-weight:700; }
+  .pill-green  { background:rgba(22,163,74,0.12);color:#4ade80; }
+  .pill-yellow { background:rgba(245,158,11,0.12);color:#fbbf24; }
+  .pill-red    { background:rgba(239,68,68,0.12);color:#f87171; }
+
+  .lvl-badge { padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;text-transform:uppercase; }
+  .lvl-strong  { background:rgba(22,163,74,0.12);color:#4ade80; }
+  .lvl-average { background:rgba(245,158,11,0.12);color:#fbbf24; }
+  .lvl-weak    { background:rgba(239,68,68,0.12);color:#f87171; }
+  .risk-badge  { padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;text-transform:uppercase; }
+  .risk-high   { background:rgba(239,68,68,0.12);color:#f87171; }
+  .risk-medium { background:rgba(245,158,11,0.12);color:#fbbf24; }
+  .risk-low    { background:rgba(22,163,74,0.12);color:#4ade80; }
+
+  .cert-th { padding:10px 16px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.4px;background:var(--page-bg);border-bottom:1px solid var(--border); }
+  .cert-td { padding:12px 16px;font-size:13.5px;border-bottom:1px solid var(--border); }
+
+  /* Grading Modal */
+  .modal { display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center; }
+  .modal.show { display:flex; }
+  .modal-content { background:var(--white);padding:30px;border-radius:18px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;box-shadow:0 10px 25px rgba(0,0,0,0.1); }
+  .modal-header { display:flex;justify-content:space-between;align-items:center;margin-bottom:20px; }
+  .modal-title { font-size:18px;font-weight:700;color:var(--ink); }
+  .close-modal { background:none;border:none;font-size:24px;color:var(--muted);cursor:pointer; }
+  .form-group { margin-bottom:18px; }
+  .form-label { display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px; }
+  .form-control { width:100%;padding:11px 14px;border:1px solid var(--border);border-radius:9px;font-size:14.5px;font-family:inherit;transition:border-color .15s; }
+  .form-control:focus { outline:none;border-color:#7c3aed; }
+  .answer-box { background: var(--page-bg);padding:15px;border-radius:10px;border:1px solid var(--border);font-family:monospace;font-size:13px;white-space:pre-wrap;margin-bottom:15px;max-height:200px;overflow-y:auto; }
+  .badge-pending { background:rgba(245,158,11,0.12);color:#fbbf24;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700; }
+
+  @media(max-width:900px){    .verdict-row{grid-template-columns:repeat(3,1fr);}
+    .charts-row{grid-template-columns:1fr;}
+    .eng-grid{grid-template-columns:1fr 1fr;}
+  }
+
+  /* ── DARK MODE OVERRIDES ── */
+  [data-theme="dark"] .hero-card,
+  [data-theme="dark"] .v-card,
+  [data-theme="dark"] .eng-card,
+  [data-theme="dark"] .panel,
+  [data-theme="dark"] .modal-content { background: var(--white) !important; border-color: var(--border) !important; }
+
+  [data-theme="dark"] .tab-btn.active { background: var(--white) !important; color: var(--ink) !important; }
+
+  [data-theme="dark"] .perf-table th,
+  [data-theme="dark"] .cert-th { background: var(--page-bg) !important; color: var(--muted) !important; }
+
+  [data-theme="dark"] .perf-table td,
+  [data-theme="dark"] .cert-td { border-color: var(--border) !important; color: var(--ink) !important; }
+
+  [data-theme="dark"] .activity-row { border-color: var(--border) !important; }
+
+  [data-theme="dark"] .back-btn { background: var(--white) !important; border-color: var(--border) !important; }
+
+  [data-theme="dark"] .form-control { background: var(--input-bg) !important; color: var(--ink) !important; border-color: var(--border) !important; }
+
+  [data-theme="dark"] .answer-box { background: var(--page-bg) !important; color: var(--ink) !important; }
+
+</style>  <link rel="stylesheet" href="../css/mobile.css">
+</head>
+<body>
+<div id="sidebar" class="sidebar"></div>
+<div class="main-content">
+  <div id="navbar" class="navbar"></div>
+  <div class="page-content">
+
+    <a href="students.html" class="back-btn">← Back to Students</a>
+
+    <!-- GRADING MODAL -->
+    <div id="gradeModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">Manual Assignment Grading</h2>
+          <button class="close-modal" onclick="closeGradeModal()">×</button>
+        </div>
+        <div id="gradeModalBody">
+          <div class="form-group">
+            <label class="form-label">Assignment</label>
+            <div id="modalAssignTitle" style="font-weight:700;color:var(--ink);"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Student Answer</label>
+            <div id="modalStudentAnswer" class="answer-box"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Model Answer Key (Reference)</label>
+            <div id="modalModelAnswer" class="answer-box" style="background:#fefce8;border-color:#fde68a;"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="form-group">
+              <label class="form-label">Obtained Marks</label>
+              <input type="number" id="modalObtainedMarks" class="form-control" placeholder="Enter marks">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Total Marks</label>
+              <input type="text" id="modalTotalMarks" class="form-control" disabled>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Teacher Feedback</label>
+            <textarea id="modalFeedback" class="form-control" style="min-height:80px;" placeholder="Optional feedback for student"></textarea>
+          </div>
+          <button class="btn-primary" style="width:100%;padding:14px;border-radius:12px;" onclick="submitManualGrade()">Save & Update Grade</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hero -->
+    <div class="hero-card">
+      <div class="hero-left">
+        <div class="big-avatar" id="heroAvatar">?</div>
+        <div>
+          <div class="hero-name"  id="heroName">Loading…</div>
+          <div class="hero-email" id="heroEmail"></div>
+          <div class="hero-tags"  id="heroTags"></div>
+        </div>
+      </div>
+      <div class="hero-right" id="heroRight"></div>
+    </div>
+
+    <!-- Verdict cards -->
+    <div class="verdict-row">
+      <div class="v-card"><div class="v-label">AI Learner Level</div><div class="v-value" id="vLevel">—</div></div>
+      <div class="v-card"><div class="v-label">Dropout Risk</div><div class="v-value" id="vRisk">—</div></div>
+      <div class="v-card"><div class="v-label">Overall Score</div><div class="v-value" id="vOverall">—</div></div>
+      <div class="v-card"><div class="v-label">Quiz Average</div><div class="v-value" id="vQuiz">—</div></div>
+      <div class="v-card"><div class="v-label">Assignment Avg</div><div class="v-value" id="vAssign">—</div></div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs-bar">
+      <button class="tab-btn active" data-tab="overview">Overview</button>
+      <button class="tab-btn" data-tab="courses">Courses</button>
+      <button class="tab-btn" data-tab="engagement">Engagement & Videos</button>
+      <button class="tab-btn" data-tab="activity">Activity</button>
+      <button class="tab-btn" data-tab="certs">Certificates</button>
+    </div>
+
+    <!-- OVERVIEW -->
+    <div class="tab-pane active" id="tab-overview">
+      <div class="eng-grid">
+        <div class="eng-card">
+          <div class="eng-title">Quiz Engagement</div>
+          <div class="donut-box"><canvas id="quizDonut"></canvas><div class="donut-center" id="quizCenter">—</div></div>
+          <div class="eng-bar-wrap">
+            <span style="font-size:12px;color:var(--muted);min-width:90px;">Attempt Rate</span>
+            <div class="eng-bar-bg"><div class="eng-bar-fill" id="quizBar" style="background:#14b8a6;"></div></div>
+            <span class="eng-bar-label" id="quizRateLbl">0%</span>
+          </div>
+          <div class="eng-bar-wrap" style="margin-top:6px;">
+            <span style="font-size:12px;color:var(--muted);min-width:90px;">Avg Score</span>
+            <div class="eng-bar-bg"><div class="eng-bar-fill" id="quizScoreBar" style="background:#14b8a6;"></div></div>
+            <span class="eng-bar-label" id="quizScoreLbl">0%</span>
+          </div>
+        </div>
+        <div class="eng-card">
+          <div class="eng-title">Video Completion</div>
+          <div class="donut-box"><canvas id="videoDonut"></canvas><div class="donut-center" id="videoCenter">—</div></div>
+          <div class="eng-bar-wrap">
+            <span style="font-size:12px;color:var(--muted);min-width:90px;">Completed</span>
+            <div class="eng-bar-bg"><div class="eng-bar-fill" id="videoBar" style="background:#3b82f6;"></div></div>
+            <span class="eng-bar-label" id="videoRateLbl">0%</span>
+          </div>
+        </div>
+        <div class="eng-card">
+          <div class="eng-title">Assignment Submission</div>
+          <div class="donut-box"><canvas id="assignDonut"></canvas><div class="donut-center" id="assignCenter">—</div></div>
+          <div class="eng-bar-wrap">
+            <span style="font-size:12px;color:var(--muted);min-width:90px;">Submit Rate</span>
+            <div class="eng-bar-bg"><div class="eng-bar-fill" id="assignBar" style="background:#8b5cf6;"></div></div>
+            <span class="eng-bar-label" id="assignRateLbl">0%</span>
+          </div>
+          <div class="eng-bar-wrap" style="margin-top:6px;">
+            <span style="font-size:12px;color:var(--muted);min-width:90px;">Avg Score</span>
+            <div class="eng-bar-bg"><div class="eng-bar-fill" id="assignScoreBar" style="background:#8b5cf6;"></div></div>
+            <span class="eng-bar-label" id="assignScoreLbl">0%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <div class="panel" style="margin:0;">
+          <div class="panel-title">Course-wise Performance</div>
+          <div class="chart-box"><canvas id="courseChart"></canvas></div>
+        </div>
+        <div class="panel" style="margin:0;">
+          <div class="panel-title">Performance Radar</div>
+          <div class="chart-box"><canvas id="radarChart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">💡 AI Insights</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:28px;" id="insightsGrid"></div>
+      </div>
+    </div>
+
+    <!-- COURSES -->
+    <div class="tab-pane" id="tab-courses">
+      <div class="panel">
+        <div class="panel-title">Per-Course Breakdown</div>
+        <div id="coursesContent"></div>
+      </div>
+    </div>
+
+    <!-- ENGAGEMENT & VIDEOS -->
+    <div class="tab-pane" id="tab-engagement">
+      <div class="panel">
+        <div class="panel-title">Detailed Video Engagement</div>
+        <div style="font-size:13px; color:var(--muted); margin-bottom:16px;">
+          Note: Completion status is "Complete" once a student watches at least <strong>80%</strong> of the video.
+        </div>
+        <table class="perf-table">
+          <thead>
+            <tr>
+              <th>Course</th>
+              <th>Topic</th>
+              <th>Watch Time</th>
+              <th>Progress</th>
+              <th>Skips</th>
+              <th>Avg Speed</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="videoProgBody">
+            <tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--muted);">No video history recorded.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ACTIVITY -->
+    <div class="tab-pane" id="tab-activity">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+        <div class="panel" style="margin:0;"><div class="panel-title">Recent Quiz Attempts</div><div id="quizHistory"></div></div>
+        <div class="panel" style="margin:0;"><div class="panel-title">Recent Assignment Submissions</div><div id="assignHistory"></div></div>
+      </div>
+    </div>
+
+    <!-- CERTS -->
+    <div class="tab-pane" id="tab-certs">
+      <div class="panel">
+        <div class="panel-title">🏆 Certificate History</div>
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr>
+              <th class="cert-th">Course</th>
+              <th class="cert-th">Score</th>
+              <th class="cert-th">Status</th>
+              <th class="cert-th">Requested</th>
+              <th class="cert-th">Issued On</th>
+            </tr>
+          </thead>
+          <tbody id="certBody">
+            <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted);">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+<script src="js/layout.js"></script>
+  <script>
+
+const params    = new URLSearchParams(window.location.search);
+const studentId = params.get("id");
+if (!studentId) location.href = "students.html";
+
+let d = null;
+
+document.addEventListener("DOMContentLoaded", async () => {
+  setupTabs();
+  await loadDetail();
+  loadCerts();
+});
+
+function setupTabs() {
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+    });
+  });
+}
+
+async function loadDetail() {
+  try {
+    const res = await fetch(`${API}/teacher/students/${studentId}/detail`, {
+      headers: { Authorization: "Bearer " + token }
+    });
+    if (!res.ok) throw new Error();
+    d = await res.json();
+    renderHero();
+    renderVerdict();
+    renderOverview();
+    renderCourses();
+    renderVideoProgress();
+    renderActivity();
+  } catch(e) {
+    document.getElementById("heroName").textContent = "Failed to load student.";
+    console.error(e);
+  }
+}
+
+function renderHero() {
+  document.title = `${d.name} — Faculty Portal`;
+  document.getElementById("heroAvatar").textContent = d.name.charAt(0).toUpperCase();
+  document.getElementById("heroName").textContent   = d.name;
+  document.getElementById("heroEmail").textContent  = d.email;
+  document.getElementById("heroTags").innerHTML = `
+    <span class="hero-tag tag-purple">Student</span>
+    <span class="hero-tag tag-blue">Joined ${d.joined || "—"}</span>`;
+
+  document.getElementById("heroRight").innerHTML = `
+    <div class="hero-stat"><div class="hero-stat-val">${d.enrolled_count}</div><div class="hero-stat-label">Enrolled</div></div>
+    <div class="hero-stat"><div class="hero-stat-val" style="color:#7c3aed;">${d.videos_completed}</div><div class="hero-stat-label">Videos</div></div>
+    <div class="hero-stat"><div class="hero-stat-val" style="color:#0ea5e9;">${d.quizzes_attempted}</div><div class="hero-stat-label">Quizzes</div></div>
+    <div class="hero-stat"><div class="hero-stat-val" style="color:#16a34a;">${d.assignments_submitted}</div><div class="hero-stat-label">Assignments</div></div>`;
+}
+
+function renderVerdict() {
+  const lc = l => l==="Strong"?"#16a34a":l==="Average"?"#d97706":"#dc2626";
+  const rc = r => r==="High"?"#dc2626":r==="Medium"?"#d97706":"#16a34a";
+  document.getElementById("vLevel").innerHTML  = `<span style="color:${lc(d.level)}">${d.level}</span>`;
+  document.getElementById("vRisk").innerHTML   = `<span style="color:${rc(d.dropout_risk)}">${d.dropout_risk}</span>`;
+  document.getElementById("vOverall").textContent = (d.overall_score || 0) + "%";
+  document.getElementById("vQuiz").textContent    = (d.quiz_average  || 0) + "%";
+  document.getElementById("vAssign").textContent  = (d.assign_average|| 0) + "%";
+}
+
+function renderOverview() {
+  // Donuts + bars
+  mkDonut("quizDonut", d.quiz_attempt_rate, "#14b8a6", "quizCenter", d.quiz_attempt_rate + "%");
+  setBar("quizBar", d.quiz_attempt_rate); setLbl("quizRateLbl", d.quiz_attempt_rate);
+  setBar("quizScoreBar", d.quiz_average);  setLbl("quizScoreLbl", d.quiz_average);
+
+  mkDonut("videoDonut", d.completion_rate,  "#3b82f6", "videoCenter", d.completion_rate + "%");
+  setBar("videoBar", d.completion_rate);  setLbl("videoRateLbl", d.completion_rate);
+
+  mkDonut("assignDonut", d.assign_submission_rate, "#8b5cf6", "assignCenter", d.assign_submission_rate + "%");
+  setBar("assignBar", d.assign_submission_rate); setLbl("assignRateLbl", d.assign_submission_rate);
+  setBar("assignScoreBar", d.assign_average);    setLbl("assignScoreLbl", d.assign_average);
+
+
+  function chartTheme() {
+    const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    return {
+      grid:  dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+      text:  dark ? '#94a3b8' : '#6b7280',
+      point: dark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.05)',
+    };
+  }
+
+  // Bar chart
+  const cs = d.enrolled_courses;
+  new Chart(document.getElementById("courseChart"), {
+    type:"bar",
+    data:{ labels: cs.map(c => c.title.length>14 ? c.title.substring(0,13)+"…" : c.title),
+           datasets:[
+             {label:"Quiz %",   data:cs.map(c=>c.quiz_avg),   backgroundColor:"#7c3aed", borderRadius:4},
+             {label:"Assign %", data:cs.map(c=>c.assign_avg), backgroundColor:"#c4b5fd", borderRadius:4}
+           ]},
+    options:{responsive:true,maintainAspectRatio:false,
+             plugins:{legend:{position:"top",labels:{color:chartTheme().text}}},
+             scales:{
+               y:{beginAtZero:true,max:100,grid:{color:chartTheme().grid},ticks:{color:chartTheme().text}},
+               x:{grid:{color:chartTheme().grid},ticks:{color:chartTheme().text}}
+             }}
+  });
+
+  // Radar
+  new Chart(document.getElementById("radarChart"), {
+    type:"radar",
+    data:{
+      labels:["Quiz Avg","Assign Avg","Completion","Quiz Rate","Assign Rate"],
+      datasets:[{label:d.name,
+        data:[d.quiz_average,d.assign_average,d.completion_rate,d.quiz_attempt_rate,d.assign_submission_rate],
+        backgroundColor:"rgba(124,58,237,0.15)",borderColor:"#7c3aed",pointBackgroundColor:"#7c3aed"}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:chartTheme().text}}},
+      scales:{r:{
+        beginAtZero:true,max:100,
+        grid:{color:chartTheme().grid},
+        angleLines:{color:chartTheme().grid},
+        pointLabels:{color:chartTheme().text,font:{size:11}},
+        ticks:{color:chartTheme().text,backdropColor:'transparent',stepSize:20}
+      }}}
+  });
+
+  // Insights
+  const str=[], imp=[], act=[];
+  if(d.quiz_average>=70)           str.push("Strong quiz performance");
+  if(d.assign_average>=70)         str.push("Consistent assignment scores");
+  if(d.completion_rate>=70)        str.push("High video completion");
+  if(str.length===0)               str.push("Enrolled and participating");
+  if(d.completion_rate<50)         imp.push("Video completion is low");
+  if(d.quiz_attempt_rate<50)       imp.push("Not attempting all quizzes");
+  if(d.assign_submission_rate<50)  imp.push("Assignment submissions lacking");
+  if(imp.length===0)               imp.push("Performance is on track");
+  if(d.dropout_risk==="High")      act.push("Schedule an urgent check-in");
+  if(d.completion_rate<40)         act.push("Encourage watching course videos");
+  if(d.quiz_attempt_rate<40)       act.push("Remind student to attempt quizzes");
+  if(act.length===0)               act.push("Keep up the great work!");
+
+  const ul = items => `<ul style="list-style:none;padding:0;margin:0;">${
+    items.map(i=>`<li style="padding:6px 0;border-bottom:1px solid var(--border);font-size:13.5px;color:var(--ink);">${i}</li>`).join("")
+  }</ul>`;
+  document.getElementById("insightsGrid").innerHTML=`
+    <div><div style="font-weight:700;font-size:13px;margin-bottom:10px;">✅ Strengths</div>${ul(str)}</div>
+    <div><div style="font-weight:700;font-size:13px;margin-bottom:10px;">⚠ Needs Improvement</div>${ul(imp)}</div>
+    <div><div style="font-weight:700;font-size:13px;margin-bottom:10px;">🎯 Recommended Actions</div>${ul(act)}</div>`;
+}
+
+function renderCourses() {
+  const cs = d.enrolled_courses;
+  if(!cs.length){document.getElementById("coursesContent").innerHTML="<p style='color:var(--muted);'>No courses found.</p>";return;}
+  const bar=(v,color)=>`<div class="score-bar-wrap"><div class="score-bar-bg"><div class="score-bar-fill" style="width:${v}%;background:${color};"></div></div><span style="font-size:13px;font-weight:700;min-width:36px;">${v}%</span></div>`;
+  const lb=l=>`<span class="lvl-badge lvl-${(l||"weak").toLowerCase()}">${l}</span>`;
+  const rb=r=>`<span class="risk-badge risk-${(r||"low").toLowerCase()}">${r}</span>`;
+  document.getElementById("coursesContent").innerHTML=`
+    <table class="perf-table">
+      <thead><tr>
+        <th>Course</th><th>Overall</th><th>Quiz</th><th>Assignment</th>
+        <th>Videos</th><th>Quizzes</th><th>Assignments</th><th>Level</th><th>Risk</th>
+      </tr></thead>
+      <tbody>${cs.map(c=>`
+        <tr>
+          <td style="font-weight:700;color:var(--ink);">${c.title}</td>
+          <td>${bar(c.overall,"#7c3aed")}</td>
+          <td>${bar(c.quiz_avg,"#0ea5e9")}</td>
+          <td>${bar(c.assign_avg,"#10b981")}</td>
+          <td style="font-weight:600;">${c.videos}</td>
+          <td style="font-weight:600;">${c.quizzes||"—"}</td>
+          <td style="font-weight:600;">${c.assignments||"—"}</td>
+          <td>${lb(c.level)}</td>
+          <td>${rb(c.risk)}</td>
+        </tr>`).join("")}
+      </tbody>
+    </table>`;
+}
+
+function renderVideoProgress() {
+  const vp = d.video_progress;
+  const body = document.getElementById("videoProgBody");
+  if(!vp || !vp.length){
+    body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--muted);">No video history recorded.</td></tr>';
+    return;
+  }
+  
+  const bar=(v,color)=>`<div class="score-bar-wrap"><div class="score-bar-bg"><div class="score-bar-fill" style="width:${v}%;background:${color};"></div></div><span style="font-size:12px;font-weight:700;min-width:30px;">${v}%</span></div>`;
+  const fmtTime = sec => {
+    const min = Math.floor(sec/60);
+    const s = sec % 60;
+    return `${min}m ${s}s`;
+  };
+
+  body.innerHTML = vp.map(v => `
+    <tr>
+      <td style="font-size:12px;color:var(--muted);">${v.course}</td>
+      <td style="font-weight:700;color:var(--ink);">${v.topic}</td>
+      <td style="font-weight:600;">${fmtTime(v.watch_time)}</td>
+      <td>${bar(v.percentage, v.percentage >= 80 ? "#10b981" : "#3b82f6")}</td>
+      <td style="text-align:center;font-weight:700;color:${v.skip_count > 5 ? '#dc2626' : 'var(--ink)'};">
+        ${v.skip_count}
+      </td>
+      <td style="text-align:center;">${v.playback_speed}x</td>
+      <td>
+        <span class="lvl-badge ${v.status === 'Complete' ? 'lvl-strong' : 'lvl-average'}">
+          ${v.status}
+        </span>
+      </td>
+    </tr>
+  `).join("");
+}
+
+function renderActivity() {
+  const pc = p => p>=70?"pill-green":p>=40?"pill-yellow":"pill-red";
+  const pNum = s => parseInt((s||"0").replace("%",""));
+
+  const qRows = d.quiz_history.map(q=>`
+    <div class="activity-row">
+      <div><div class="act-title">${q.quiz}</div><div class="act-sub">${q.course} · ${q.date}</div></div>
+      <span class="score-pill ${pc(pNum(q.pct))}">${q.score} (${q.pct})</span>
+    </div>`).join("") || `<p style="color:var(--muted);font-size:13px;padding-top:8px;">No quiz attempts yet.</p>`;
+
+  const aRows = d.assign_history.map(a=>`
+    <div class="activity-row">
+      <div>
+        <div class="act-title">${a.title}</div>
+        <div class="act-sub">${a.course} · ${a.date}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        ${a.is_manual_review 
+          ? `<span class="badge-pending">Pending Review</span><button class="tab-btn active" style="padding:4px 10px;font-size:11px;" onclick='openGradeModal(${JSON.stringify(a).replace(/'/g, "&apos;")})'>Grade</button>`
+          : `<span class="score-pill ${pc(pNum(a.pct))}">${a.score} (${a.pct})</span>`
+        }
+      </div>
+    </div>`).join("") || `<p style="color:var(--muted);font-size:13px;padding-top:8px;">No submissions yet.</p>`;
+
+  document.getElementById("quizHistory").innerHTML   = qRows;
+  document.getElementById("assignHistory").innerHTML = aRows;
+}
+
+let activeSubmissionId = null;
+
+function openGradeModal(a) {
+  activeSubmissionId = a.id;
+  document.getElementById("modalAssignTitle").textContent = a.title;
+  document.getElementById("modalStudentAnswer").textContent = a.student_answer || "No answer text provided.";
+  document.getElementById("modalModelAnswer").textContent = a.model_answer || "No model answer provided by teacher.";
+  document.getElementById("modalTotalMarks").value = a.score.split("/")[1].trim();
+  document.getElementById("modalObtainedMarks").value = "";
+  document.getElementById("modalFeedback").value = "";
+  document.getElementById("gradeModal").classList.add("show");
+}
+
+function closeGradeModal() {
+  document.getElementById("gradeModal").classList.remove("show");
+}
+
+async function submitManualGrade() {
+  const marks = document.getElementById("modalObtainedMarks").value;
+  const feedback = document.getElementById("modalFeedback").value;
+  const total = document.getElementById("modalTotalMarks").value;
+
+  if (marks === "" || marks < 0 || parseInt(marks) > parseInt(total)) {
+    alert(`Please enter valid marks (0 - ${total})`);
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API}/teacher/grade-submission`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+      body: JSON.stringify({
+        submission_id: activeSubmissionId,
+        obtained_marks: parseInt(marks),
+        feedback: feedback
+      })
+    });
+
+    if (res.ok) {
+      alert("Assignment graded successfully!");
+      closeGradeModal();
+      location.reload(); // Refresh to show new scores and trigger AI level update
+    } else {
+      const err = await res.json();
+      alert(err.detail || "Failed to save grade");
+    }
+  } catch (e) {
+    alert("Server error");
+  }
+}
+
+async function loadCerts() {
+  const body = document.getElementById("certBody");
+  try {
+    const res   = await fetch(`${API}/teacher/students/${studentId}/certificates`, {headers:{Authorization:"Bearer "+token}});
+    const certs = await res.json();
+    if(!certs.length){body.innerHTML='<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted);">No certificate records found.</td></tr>';return;}
+    const fmt = iso => iso ? new Date(iso).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}) : "—";
+    const sb = (status,issued) => issued
+      ? `<span class="lvl-badge lvl-strong">✅ Issued</span>`
+      : status==="rejected"
+      ? `<span class="risk-badge risk-high">✕ Rejected</span>`
+      : `<span style="background:#fef3c7;color:#92400e;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;">⏳ Pending</span>`;
+    body.innerHTML = certs.map(c=>`
+      <tr>
+        <td class="cert-td" style="font-weight:600;">${c.course_title}</td>
+        <td class="cert-td" style="font-weight:700;color:${c.score>=70?'#16a34a':'#d97706'};">${c.score}%</td>
+        <td class="cert-td">${sb(c.status,c.issued)}</td>
+        <td class="cert-td" style="font-size:13px;color:var(--muted);">${fmt(c.request_date)}</td>
+        <td class="cert-td" style="font-size:13px;color:var(--muted);">${fmt(c.issued_at)}</td>
+      </tr>`).join("");
+  } catch(e){body.innerHTML='<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted);">Error loading certificates.</td></tr>';}
+}
+
+/* ── Helpers ── */
+function mkDonut(id, pct, color, centerId, centerText) {
+  const v = Math.min(100,Math.max(0,pct||0));
+  new Chart(document.getElementById(id),{
+    type:"doughnut",
+    data:{datasets:[{data:[v,Math.max(0,100-v)||0.001],backgroundColor:[color, document.documentElement.getAttribute("data-theme")==="dark" ? "#334155" : "#f3f4f6"],borderWidth:0}]},
+    options:{cutout:"74%",responsive:true,maintainAspectRatio:false,plugins:{tooltip:{enabled:false}}}
+  });
+  document.getElementById(centerId).textContent = centerText;
+}
+function setBar(id, pct) { const el=document.getElementById(id); if(el) el.style.width=(Math.min(100,pct||0))+"%"; }
+function setLbl(id, pct) { const el=document.getElementById(id); if(el) el.textContent=Math.round(pct||0)+"%"; }
+</script>
+  <script src="../js/mobile-toggle.js"></script>
+</body>
+</html>

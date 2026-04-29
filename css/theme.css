@@ -1,0 +1,244 @@
+/* 
+  Global Theme Variables 
+  This file handles Light, Dark, and System themes using CSS Variables.
+*/
+
+:root {
+  /* Common non-color variables */
+  --sidebar-w: 255px;
+  --navbar-h: 95px;
+  --radius: 14px;
+  --radius-sm: 8px;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Light Theme (Default) */
+  --page-bg: #f4f5f9;
+  --white: #ffffff;
+  --ink: #111827;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  
+  /* Sidebar Light */
+  --sb-bg: #ffffff;
+  --sb-border: #e5e7eb;
+  --sb-text: #6b7280;
+  --sb-text-hover: #111827;
+  --sb-active-bg: #f5f3ff; /* Default, overridden by portals */
+  --sb-active-text: #7c3aed; /* Default, overridden by portals */
+  
+  /* Shadow Light */
+  --shadow: 0 2px 12px rgba(0,0,0,0.06);
+  --shadow-md: 0 8px 28px rgba(0,0,0,0.09);
+  
+  /* Inputs */
+  --input-bg: #ffffff;
+  --input-border: #e2e8f0;
+}
+
+/* Dark Theme Overrides */
+[data-theme="dark"] {
+  --page-bg: #0f172a;
+  --white: #1e293b;
+  --ink: #f1f5f9;
+  --muted: #94a3b8;
+  --border: #334155;
+  
+  /* Sidebar Dark */
+  --sb-bg: #1e293b;
+  --sb-border: #334155;
+  --sb-text: #94a3b8;
+  --sb-text-hover: #f1f5f9;
+  --sb-active-bg: rgba(255, 255, 255, 0.05);
+  --sb-active-text: #ffffff;
+  
+  /* Shadow Dark */
+  --shadow: 0 4px 20px rgba(0,0,0,0.3);
+  --shadow-md: 0 10px 40px rgba(0,0,0,0.4);
+  
+  /* Inputs */
+  --input-bg: #1e293b;
+  --input-border: #334155;
+}
+
+/* Base styles to ensure variables are used */
+body {
+  background-color: var(--page-bg);
+  color: var(--ink);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Force overrides for common components that might have inline styles or legacy CSS */
+h1, h2, h3, h4, h5, h6 { color: var(--ink); }
+p, span, label, li { color: inherit; }
+
+/* Global helper classes for forcing themes */
+.themed-card {
+  background-color: var(--white) !important;
+  color: var(--ink) !important;
+  border-color: var(--border) !important;
+}
+
+.themed-text {
+  color: var(--ink) !important;
+}
+
+.themed-muted {
+  color: var(--muted) !important;
+}
+
+/* Generic Utility Classes for converted inline styles */
+.flex-between { display: flex; justify-content: space-between; align-items: center; }
+.flex-center { display: flex; justify-content: center; align-items: center; }
+.gap-12 { gap: 12px; }
+.m-b-24 { margin-bottom: 24px; }
+.p-20 { padding: 20px; }
+.text-center { text-align: center; }
+.hidden { display: none !important; }
+
+/* ===== THEME TOGGLE PILL SWITCH ===== */
+/* Styled like the image: pill-shaped toggle with icon on left, label on right */
+.theme-pill-toggle {
+  display: flex;
+  align-items: center;
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: 50px;
+  padding: 5px 14px 5px 5px;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  user-select: none;
+  white-space: nowrap;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+}
+
+.theme-pill-toggle:hover {
+  box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+  border-color: var(--accent);
+}
+
+.theme-pill-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  flex-shrink: 0;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Light mode icon — dark circle with sun */
+[data-theme="light"] .theme-pill-icon {
+  background: #111827;
+  color: #fff;
+}
+
+/* Dark mode icon — white circle with moon */
+[data-theme="dark"] .theme-pill-icon {
+  background: #ffffff;
+  color: #111827;
+}
+
+.theme-pill-label {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  transition: color 0.3s;
+  color: var(--ink);
+}
+
+/* ===== DARK MODE — Additional overrides for components ===== */
+[data-theme="dark"] .insight.red   { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.25); }
+[data-theme="dark"] .insight.green { background: rgba(16,185,129,0.12); border-color: rgba(16,185,129,0.25); }
+[data-theme="dark"] .insight.blue  { background: rgba(59,130,246,0.12); border-color: rgba(59,130,246,0.25); }
+
+[data-theme="dark"] .insight-box.green  { background: rgba(16,185,129,0.10) !important; border-color: rgba(16,185,129,0.25) !important; }
+[data-theme="dark"] .insight-box.orange { background: rgba(245,158,11,0.10) !important; border-color: rgba(245,158,11,0.25) !important; }
+
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+  background-color: var(--input-bg) !important;
+  color: var(--ink) !important;
+  border-color: var(--input-border) !important;
+}
+
+[data-theme="dark"] .form-input {
+  background-color: var(--input-bg) !important;
+  color: var(--ink) !important;
+}
+
+/* Tables */
+[data-theme="dark"] table { color: var(--ink); }
+[data-theme="dark"] th { color: var(--muted); background: var(--page-bg); border-color: var(--border); }
+[data-theme="dark"] td { border-color: var(--border); color: var(--ink); }
+[data-theme="dark"] tr:hover td { background: rgba(255,255,255,0.03); }
+
+/* Modal / overlay */
+[data-theme="dark"] .modal-content,
+[data-theme="dark"] .modal-box,
+[data-theme="dark"] .modal {
+  background: var(--white) !important;
+  color: var(--ink) !important;
+  border-color: var(--border) !important;
+}
+
+/* Cards */
+[data-theme="dark"] .card,
+[data-theme="dark"] .panel,
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] .chart-panel,
+[data-theme="dark"] .settings-section,
+[data-theme="dark"] .s-card,
+[data-theme="dark"] .course-card,
+[data-theme="dark"] .table-card,
+[data-theme="dark"] .chart-card {
+  background: var(--white) !important;
+  border-color: var(--border) !important;
+  color: var(--ink) !important;
+}
+
+/* Navbar */
+[data-theme="dark"] .navbar {
+  background: var(--white) !important;
+  border-color: var(--border) !important;
+}
+
+/* Force text visibility on dark backgrounds */
+[data-theme="dark"] .page-content h1,
+[data-theme="dark"] .page-content h2,
+[data-theme="dark"] .page-content h3,
+[data-theme="dark"] .section-title,
+[data-theme="dark"] .panel-header h3,
+[data-theme="dark"] .stat-card h2,
+[data-theme="dark"] .chart-panel h3 {
+  color: var(--ink) !important;
+}
+
+/* Progress bars track */
+[data-theme="dark"] .engagement-bar-wrap,
+[data-theme="dark"] .ebar-bg,
+[data-theme="dark"] .progress-bg {
+  background: var(--border) !important;
+}
+
+/* Badges - keep semantic colors but ensure readability */
+[data-theme="dark"] .badge.published { background: rgba(22,163,74,0.15); color: #4ade80; }
+[data-theme="dark"] .badge.draft     { background: rgba(133,77,14,0.15); color: #fbbf24; }
+
+/* AI Insights / Review guide panels */
+[data-theme="dark"] [style*="background:#f1f5f9"],
+[data-theme="dark"] [style*="background: #f1f5f9"] {
+  background: var(--white) !important;
+}
+
+/* Force all text inside performance insights to be visible */
+[data-theme="dark"] .actions-box,
+[data-theme="dark"] .insight-box,
+[data-theme="dark"] .actions-box li,
+[data-theme="dark"] .insight-item {
+  color: var(--ink) !important;
+}

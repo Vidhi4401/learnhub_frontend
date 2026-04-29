@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Certificates Audit — Admin Portal</title>
+  <link rel="stylesheet" href="../css/theme.css">
+  <link rel="stylesheet" href="css/main.css">
+  <script src="../js/config.js"></script>
+  <script src="../js/theme-manager.js"></script>
+  <link rel="stylesheet" href="../css/mobile.css">
+</head>
+<body>
+
+  <div id="sidebar" class="sidebar"></div>
+
+  <div class="main-content">
+    <div id="navbar" class="navbar"></div>
+
+    <main class="page-content">
+      <h1 class="navbar-page-title" style="font-size:24px; margin-bottom:24px;">Platform Certificates Audit</h1>
+
+      <div class="table-card fade-up">
+          <div style="padding:20px 24px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+              <h3 class="panel-title" style="margin:0;">Master Issued Certificates Log</h3>
+              <p style="font-size:12px; color:var(--muted);">All certificates issued by course teachers across the platform.</p>
+          </div>
+          <table class="data-table">
+              <thead>
+                  <tr>
+                      <th>Recipient Student</th>
+                      <th>Course Title</th>
+                      <th>Issued By (Teacher)</th>
+                      <th>Date Issued</th>
+                      <th>Action</th>
+                  </tr>
+              </thead>
+              <tbody id="issuedTableBody">
+                  <!-- Dynamic -->
+                  <tr><td colspan="5" style="text-align:center; padding:40px;">Loading history...</td></tr>
+              </tbody>
+          </table>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/layout.js"></script>
+  <script src="js/certificates.js"></script>
+  <script src="../js/mobile-toggle.js"></script>
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Course Detail</title>    <link rel="stylesheet" href="../css/theme.css">
+  <link rel="stylesheet" href="css/main.css">  <link rel="stylesheet" href="css/course-detail.css">  <link rel="stylesheet" href="../css/mobile.css">
+</head>
+<body>
+
+  <div id="sidebar" class="sidebar"></div>
+
+  <div class="main-content">
+    <div id="navbar" class="navbar"></div>
+
+    <div class="page-content">
+
+      <!-- Back -->
+      <a href="courses.html" class="back-link">← Back to Courses</a>
+
+      <!-- Course Header -->
+      <div class="course-hero" id="courseHero">
+        <div class="hero-info">
+          <div class="hero-badges" id="heroBadges"></div>
+          <h1 id="courseTitle">Loading...</h1>
+          <p id="courseDesc" class="hero-desc"></p>
+        </div>
+        <img id="courseImg" src="" alt="" class="hero-img" />
+      </div>
+
+      <!-- Stat Cards -->
+      <div class="detail-stats" id="detailStats">
+        <div class="detail-stat-card">
+          <!-- <span class="ds-icon">📋</span> -->
+          <div>
+            <div class="ds-label">Total Topics</div>
+            <div class="ds-value" id="statTopics">--</div>
+          </div>
+        </div>
+        <div class="detail-stat-card">
+          <!-- <span class="ds-icon">🧠</span> -->
+          <div>
+            <div class="ds-label">Total Quizzes</div>
+            <div class="ds-value" id="statQuizzes">--</div>
+          </div>
+        </div>
+        <div class="detail-stat-card">
+          <div>
+            <div class="ds-label">Total Assignments</div>
+            <div class="ds-value" id="statAssignments">--</div>
+          </div>
+        </div>
+        <div class="detail-stat-card">
+          <div>
+            <div class="ds-label">Total Materials</div>
+            <div class="ds-value" id="statMaterials">--</div>
+          </div>
+        </div>
+        <div class="detail-stat-card">
+          <!-- <span class="ds-icon">✅</span> -->
+          <div>
+            <div class="ds-label">Status</div>
+            <div class="ds-value" id="statStatus">--</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs-bar">
+        <button class="tab-btn active" data-tab="overview">Overview</button>
+        <button class="tab-btn" data-tab="topics">Topics</button>
+        <button class="tab-btn" data-tab="quizzes">Quizzes</button>
+        <button class="tab-btn" data-tab="assignments">Assignments</button>
+        <button class="tab-btn" data-tab="materials">Materials</button>
+      </div>
+
+      <!-- Tab Content -->
+      <div class="tab-content">
+
+        <!-- OVERVIEW -->
+        <div class="tab-pane active" id="tab-overview">
+          <div class="panel">
+            <h3>Course Overview</h3>
+            <div class="overview-section">
+              <h4>Description</h4>
+              <p id="overviewDesc">--</p>
+            </div>
+            <div class="overview-section">
+              <h4>Difficulty</h4>
+              <p id="overviewDifficulty">--</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- TOPICS -->
+        <div class="tab-pane" id="tab-topics">
+          <div class="panel">
+            <div class="panel-top">
+              <h3>Course Topics</h3>
+              <button class="btn-primary" onclick="goToAddTopic()">+ Add Topic</button>
+            </div>
+            <div id="topicsList"></div>
+          </div>
+        </div>
+
+        <!-- QUIZZES -->
+        <div class="tab-pane" id="tab-quizzes">
+          <div class="panel">
+            <div class="panel-top">
+              <h3>Quizzes</h3>
+              <div class="btn-group">
+                <button class="btn-primary" onclick="goToAddQuiz()">+ Add Quiz</button>
+                <button class="btn-secondary" onclick="openAIQuizModal()" style="background-color: #7c3aed; color: white;">✨ AI Quiz Generator</button>
+              </div>
+            </div>
+            <div id="quizzesList"></div>
+          </div>
+        </div>
+
+      <!-- AI Quiz Modal -->
+      <div id="aiQuizModal" class="modal-overlay">
+        <div class="modal-card">
+          <div class="modal-header">
+            <h3>✨ AI Quiz Generator</h3>
+            <button class="close-btn" onclick="closeAIQuizModal()">&times;</button>
+          </div>
+          <div class="modal-body">
+            <p>Enter details below and our AI will generate questions for you.</p>
+            
+            <label>Select Topic</label>
+            <select id="aiQuizTopic" class="form-control"></select>
+
+            <label>Quiz Title</label>
+            <input type="text" id="aiQuizTitle" placeholder="e.g. Intro to Python Basics" class="form-control">
+
+            <label>Description / Learning Outcomes</label>
+            <textarea id="aiQuizDesc" placeholder="What should this quiz cover?" class="form-control"></textarea>
+
+            <div class="form-row" style="display: flex; gap: 15px;">
+              <div style="flex: 1;">
+                <label>Number of Questions</label>
+                <input type="number" id="aiQuizNum" value="5" min="1" max="20" class="form-control">
+              </div>
+              <div style="flex: 1;">
+                <label>Difficulty</label>
+                <select id="aiQuizDiff" class="form-control">
+                  <option>Easy</option>
+                  <option selected>Intermediate</option>
+                  <option>Advanced</option>
+                </select>
+              </div>
+            </div>
+
+            <div id="aiQuizStatus" style="display: none; margin-top: 15px; text-align: center;">
+              <div class="spinner"></div>
+              <p>Generating your quiz... Please wait.</p>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn-ghost" onclick="closeAIQuizModal()">Cancel</button>
+            <button class="btn-primary" id="btnGenerateAI" onclick="generateAIQuiz()" style="background-color: #7c3aed;">Generate Quiz</button>
+          </div>
+        </div>
+      </div>
+
+        <!-- ASSIGNMENTS -->
+        <div class="tab-pane" id="tab-assignments">
+          <div class="panel">
+            <div class="panel-top">
+              <h3>Assignments</h3>
+              <button class="btn-primary" onclick="goToAddAssignment()">+ Add Assignment</button>
+            </div>
+            <div id="assignmentsList"></div>
+          </div>
+        </div>
+
+        <!-- MATERIALS -->
+        <div class="tab-pane" id="tab-materials">
+          <div class="panel">
+            <div class="panel-top">
+              <h3>Course Materials</h3>
+              <button class="btn-primary" onclick="goToAddMaterial()">+ Upload Material</button>
+            </div>
+            <div id="materialsList" class="materials-list"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/theme-manager.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/course-detail.js"></script>
+  <script src="../js/mobile-toggle.js"></script>
+</body>
+</html>

@@ -1,0 +1,216 @@
+/* =============================================
+   LEARNHUB - MOBILE RESPONSIVE STYLES
+   Covers: Admin, Teacher, Student, Superadmin
+   ============================================= */
+
+/* ---- Overlay for mobile sidebar ---- */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 999;
+  backdrop-filter: blur(2px);
+}
+.sidebar-overlay.active { display: block; }
+
+/* ============================================================
+   BREAKPOINT: Tablet & below (≤ 900px)
+   ============================================================ */
+@media (max-width: 900px) {
+  /* Sidebar hidden off-screen by default on mobile */
+  .sidebar {
+    transform: translateX(-100%);
+    z-index: 1100;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.12);
+  }
+
+  /* When sidebar is OPEN on mobile */
+  body.sidebar-open .sidebar {
+    transform: translateX(0);
+  }
+
+  /* Navbar full-width on mobile */
+  .navbar {
+    left: 0 !important;
+    padding: 0 16px;
+  }
+
+  /* Page content full-width */
+  .page-content {
+    margin-left: 0 !important;
+    padding: 20px 16px;
+  }
+
+  /* Collapsed state doesn't apply to mobile - sidebar is overlay */
+  body.sidebar-collapsed .sidebar { transform: translateX(-100%); }
+  body.sidebar-collapsed .navbar { left: 0; }
+  body.sidebar-collapsed .page-content { margin-left: 0; }
+
+  /* Hamburger always visible */
+  .nav-toggle-btn { display: flex !important; }
+
+  /* Search bar shrinks */
+  .search { width: 180px !important; }
+  .search:focus { width: 220px !important; }
+
+  /* Profile info hidden to save space */
+  .profile-info { display: none; }
+
+  /* Stats grid responsive */
+  .stats-grid,
+  [style*="grid-template-columns: repeat(4"],
+  [style*="grid-template-columns: repeat(3"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* ============================================================
+   BREAKPOINT: Mobile (≤ 600px)
+   ============================================================ */
+@media (max-width: 600px) {
+
+  /* Navbar */
+  .navbar { padding: 0 12px; height: 60px; }
+  :root { --navbar-h: 60px !important; }
+  .page-content { padding: 16px 12px; margin-top: 60px !important; }
+
+  /* Search hidden on very small screens */
+  .search { display: none; }
+
+  /* Single column stats */
+  .stats-grid,
+  [style*="grid-template-columns: repeat(4"],
+  [style*="grid-template-columns: repeat(3"],
+  [style*="grid-template-columns: repeat(2"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Tables - horizontal scroll */
+  .table-card, .panel { 
+    padding: 16px 12px !important;
+    overflow-x: auto;
+  }
+  .data-table { min-width: 500px; }
+  .data-table th, .data-table td { padding: 12px 14px; font-size: 13px; }
+
+  /* Buttons */
+  .btn { padding: 10px 14px; font-size: 13px; }
+
+  /* Modals full screen on mobile */
+  .modal { padding: 0; align-items: flex-end; }
+  .modal-content {
+    max-width: 100% !important;
+    width: 100%;
+    border-radius: 20px 20px 0 0;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  /* Page headers */
+  .page-header,
+  [style*="display:flex"][style*="justify-content:space-between"],
+  [style*="display: flex"][style*="justify-content: space-between"] {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start !important;
+  }
+
+  /* Filters row wrap */
+  .filters-row, .filter-row, .search-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .filters-row select, .filter-row select,
+  .filters-row input, .filter-row input {
+    width: 100%;
+  }
+
+  /* Cards inside grids */
+  .stat-card { padding: 16px 14px 12px; }
+  .stat-value { font-size: 22px; }
+
+  /* Avatar smaller */
+  .avatar { width: 32px; height: 32px; font-size: 13px; }
+
+  /* Sidebar brand text */
+  .sidebar-brand-text h2 { font-size: 18px; }
+
+  /* Form inputs */
+  .form-input-custom, input, select, textarea {
+    font-size: 16px !important; /* Prevents iOS zoom */
+  }
+}
+
+/* ============================================================
+   BREAKPOINT: Very small (≤ 380px)
+   ============================================================ */
+@media (max-width: 380px) {
+  .page-content { padding: 12px 10px; }
+  .panel, .table-card { padding: 14px 10px !important; }
+  .stat-value { font-size: 20px; }
+  .btn { padding: 9px 12px; font-size: 12px; }
+}
+
+/* ============================================================
+   GENERAL FLEX/GRID RESPONSIVE HELPERS
+   ============================================================ */
+@media (max-width: 768px) {
+  /* Two-column layouts become single */
+  [style*="grid-template-columns: 1fr 1fr"],
+  [style*="grid-template-columns: 2fr 1fr"],
+  [style*="grid-template-columns: 1fr 2fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Any inline flex row that should stack */
+  .flex-wrap-mobile {
+    flex-wrap: wrap !important;
+  }
+
+  /* Course cards, student cards */
+  .course-grid, .student-grid, .teacher-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) !important;
+  }
+}
+
+/* ============================================================
+   TEACHER PORTAL SPECIFIC
+   ============================================================ */
+@media (max-width: 768px) {
+  .add-course-form { padding: 20px 16px !important; }
+  .form-row { flex-direction: column !important; gap: 12px !important; }
+  .course-detail-grid { grid-template-columns: 1fr !important; }
+}
+
+/* ============================================================
+   STUDENT PORTAL SPECIFIC
+   ============================================================ */
+@media (max-width: 600px) {
+  .quiz-option { padding: 12px 14px !important; }
+  .assignment-card { padding: 16px 12px !important; }
+  .performance-chart-wrap { overflow-x: auto; }
+}
+
+/* ============================================================
+   AUTH PAGE (login)
+   ============================================================ */
+@media (max-width: 480px) {
+  .auth-card {
+    margin: 0 !important;
+    width: 100% !important;
+    min-height: 100vh;
+    border-radius: 0 !important;
+    padding: 32px 20px !important;
+  }
+}
+
+/* ============================================================
+   SUPERADMIN SPECIFIC
+   ============================================================ */
+@media (max-width: 600px) {
+  .org-grid, .org-cards {
+    grid-template-columns: 1fr !important;
+  }
+  .org-card { padding: 16px !important; }
+}

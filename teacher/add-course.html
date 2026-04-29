@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Add Course</title>    <link rel="stylesheet" href="../css/theme.css">
+  <link rel="stylesheet" href="css/main.css">  <link rel="stylesheet" href="css/add-course.css">  <link rel="stylesheet" href="../css/mobile.css">
+</head>
+
+<body>
+
+  <!-- Sidebar injected by JS -->
+  <div id="sidebar" class="sidebar"></div>
+
+  <div class="main-content">
+
+    <!-- Navbar injected by JS -->
+    <div id="navbar" class="navbar"></div>
+
+    <div class="page-wrapper">
+
+      <div class="page-header">
+        <h1>Create New Course</h1>
+        <p>Follow the steps below to build a complete course with topics, videos, assignments, and quizzes.</p>
+      </div>
+
+      <!-- STEP NAVIGATION -->
+      <div class="stepper">
+        <div class="step active" data-step="1">
+          <div class="step-bubble">1</div>
+          <span class="step-label">Basic Info</span>
+        </div>
+        <div class="step" data-step="2">
+          <div class="step-bubble">2</div>
+          <span class="step-label">Add Topics</span>
+        </div>
+        <div class="step" data-step="3">
+          <div class="step-bubble">3</div>
+          <span class="step-label">Add Videos</span>
+        </div>
+        <div class="step" data-step="4">
+          <div class="step-bubble">4</div>
+          <span class="step-label">Add Assignments</span>
+        </div>
+        <div class="step" data-step="5">
+          <div class="step-bubble">5</div>
+          <span class="step-label">Add Quizzes</span>
+        </div>
+        <div class="step" data-step="6">
+          <div class="step-bubble">6</div>
+          <span class="step-label">Quiz Questions</span>
+        </div>
+        <div class="step" data-step="7">
+          <div class="step-bubble">7</div>
+          <span class="step-label">Review & Manage</span>
+        </div>
+      </div>
+
+      <!-- FORM CARD -->
+      <div class="form-card">
+
+        <!-- STEP 1: Basic Info -->
+        <div class="step-content active" id="step-1">
+          <h3>Basic Course Information</h3>
+
+          <label>Course Title *</label>
+          <input id="courseTitle" placeholder="e.g. Complete Python Bootcamp">
+
+          <label>Description *</label>
+          <textarea id="courseDesc" placeholder="Describe what students will learn..."></textarea>
+
+          <label>Difficulty Level</label>
+          <select id="difficulty">
+            <option>Beginner</option>
+            <option>Intermediate</option>
+            <option>Advanced</option>
+          </select>
+
+          <label>Course Thumbnail</label>
+          <input type="file" id="thumbnail" accept="image/*">
+
+          <div class="btn-row">
+            <button class="primary" onclick="createCourse()">Save Course & Continue →</button>
+          </div>
+        </div>
+
+        <!-- STEP 2: Topic Management (AI & Manual) -->
+        <div class="step-content" id="step-2">
+          <h3>Manage Course Topics</h3>
+          <p style="color:var(--muted); font-size: 14px; margin-bottom: 1.5rem;">
+            You can automatically generate topics from a PDF or add them manually one by one.
+          </p>
+
+          <label>Select Course</label>
+          <select id="pdfCourseSelect" onchange="loadManualTopicsList()"></select>
+
+          <div style="margin-bottom: 1.5rem; background:var(--page-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+            <label style="margin-bottom: 10px;">Topic Creation Method</label>
+            <div style="display: flex; gap: 20px;">
+              <label style="display: flex; align-items: center; gap: 8px; text-transform: none; cursor: pointer; font-weight: 500;">
+                <input type="radio" name="topicMethod" value="ai" checked onchange="toggleTopicMethod('ai')" style="width: auto; margin: 0;"> 
+                <span>✨ AI Generation (PDF)</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; text-transform: none; cursor: pointer; font-weight: 500;">
+                <input type="radio" name="topicMethod" value="manual" onchange="toggleTopicMethod('manual')" style="width: auto; margin: 0;"> 
+                <span>➕ Manual Addition</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- AI SECTION -->
+          <div id="aiTopicSection">
+            <div id="pdfUploadSection">
+              <div class="upload-box" id="dropZone">
+                <input type="file" id="coursePdf" accept=".pdf" style="display: none;">
+                <div id="pdfPlaceholder" onclick="document.getElementById('coursePdf').click()">
+                  <span style="font-size: 40px;">📄</span>
+                  <p>Click to upload course PDF</p>
+                  <small>(Maximum 10MB)</small>
+                </div>
+                <div id="pdfSelected" style="display: none;">
+                  <p id="pdfFileName" style="font-weight: 600; color: #1e40af;"></p>
+                  <button class="btn-ghost" onclick="document.getElementById('coursePdf').click()">Change File</button>
+                </div>
+              </div>
+
+              <div class="btn-row" id="processBtnRow">
+                <button class="primary" id="btnGenerate" onclick="generateFromPdf()">✨ Generate Content from PDF</button>
+              </div>
+            </div>
+
+            <div id="processingStatus" style="display: none; margin-top: 1.5rem; text-align: center;">
+              <div class="spinner" style="margin: 0 auto 10px;"></div>
+              <p id="statusText">AI is generating your course content... This may take up to a minute.</p>
+            </div>
+
+            <div id="pdfPreviewArea" style="display: none; margin-top: 30px; border-top: 2px dashed #e2e8f0; padding-top: 20px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 style="margin:0;">Preview Generated Content</h3>
+                <p style="font-size:12px; color:var(--muted); margin:0;">Review before saving to course.</p>
+              </div>
+              
+              <div id="generatedContentList" style="display: flex; flex-direction: column; gap: 15px;"></div>
+
+              <div class="btn-row" style="margin-top: 30px; padding-top:20px; border-top:1px solid var(--border);">
+                <button class="btn-ghost" onclick="resetPdfStep()">Cancel</button>
+                <button class="primary" id="btnSavePdf" onclick="saveGeneratedContent()">💾 Save All to Course</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- MANUAL SECTION -->
+          <div id="manualTopicSection" style="display: none;">
+            <div class="panel" style="background:var(--page-bg); border: 1px solid var(--border); padding: 20px; border-radius: 12px;">
+              <label>Topic Title</label>
+              <input id="manualTopicTitle" placeholder="e.g. Introduction to Neural Networks">
+              <label>Order Number</label>
+              <input type="number" id="manualTopicOrder" value="1">
+              <div class="btn-row" style="margin-top: 15px;">
+                <button class="primary" onclick="addManualTopic()">+ Add Topic</button>
+              </div>
+            </div>
+
+            <div class="items-list" style="margin-top: 25px;">
+              <h4>Current Topics</h4>
+              <div id="manualTopicsList" class="empty-list">No topics added yet.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 3: Videos -->
+        <div class="step-content" id="step-3">
+          <h3>Add Videos to Topics</h3>
+
+          <label>Select Course</label>
+          <select id="videoCourseSelect" onchange="loadTopicsForVideo()"></select>
+
+          <label>Select Topic</label>
+          <select id="videoTopicSelect" onchange="loadVideosList()"></select>
+
+          <div style="margin-bottom: 1.5rem; background:var(--page-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+            <label style="margin-bottom: 10px;">Video Source</label>
+            <div style="display: flex; gap: 20px;">
+              <label style="display: flex; align-items: center; gap: 8px; text-transform: none; cursor: pointer; font-weight: 500;">
+                <input type="radio" name="videoSource" value="url" checked onchange="toggleVideoInput('url')" style="width: auto; margin: 0;"> 
+                <span>External URL (YouTube)</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; text-transform: none; cursor: pointer; font-weight: 500;">
+                <input type="radio" name="videoSource" value="file" onchange="toggleVideoInput('file')" style="width: auto; margin: 0;"> 
+                <span>Upload Video File</span>
+              </label>
+            </div>
+          </div>
+
+          <div id="videoUrlContainer">
+            <label>Video URL</label>
+            <input id="videoUrl" placeholder="https://youtube.com/...">
+          </div>
+
+          <div id="videoFileContainer" style="display: none;">
+            <label>Upload Video (.mp4, .webm)</label>
+            <input type="file" id="videoFile" accept="video/mp4,video/webm">
+          </div>
+
+          <label>Duration (minutes)</label>
+          <input type="number" id="videoDuration" value="10">
+
+          <div class="btn-row">
+            <button class="primary" onclick="addVideo()">Add Video</button>
+          </div>
+
+          <div class="items-list" id="videosListContainer">
+            <h4>Existing Videos</h4>
+            <div id="videosList" class="empty-list">Select a topic to view videos</div>
+          </div>
+        </div>
+
+        <!-- STEP 4: Add Assignments -->
+        <div class="step-content" id="step-4">
+          <h3>Add Assignments to Topics</h3>
+
+          <label>Select Course</label>
+          <select id="assignmentCourseSelect" onchange="loadTopicsForAssignment()"></select>
+
+          <label>Select Topic</label>
+          <select id="assignmentTopicSelect" onchange="loadAssignmentsList()"></select>
+
+          <div style="margin-bottom: 1.5rem; background:var(--page-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+            <label style="margin-bottom: 10px;">Assignment Method</label>
+            <div style="display: flex; gap: 20px;">
+              <label style="display: flex; align-items: center; gap: 8px; text-transform: none; cursor: pointer; font-weight: 500;">
+                <input type="radio" name="assignmentMethod" value="manual" checked onchange="toggleAssignmentInput('manual')" style="width: auto; margin: 0;"> 
+                <span>Manual / PDF Upload</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; text-transform: none; cursor: pointer; font-weight: 500;">
+                <input type="radio" name="assignmentMethod" value="ai" onchange="toggleAssignmentInput('ai')" style="width: auto; margin: 0;"> 
+                <span>✨ AI Generate</span>
+              </label>
+            </div>
+          </div>
+
+          <div id="manualAssignmentFields">
+            <label>Assignment Title</label>
+            <input id="assignmentTitle" placeholder="e.g. Data Analysis Project">
+
+            <label>Instructions / Description</label>
+            <textarea id="assignmentDesc" placeholder="What should students do?"></textarea>
+
+            <label>Total Marks</label>
+            <input type="number" id="assignmentMarks" value="20">
+
+            <label>Model Answer (Optional Key Points)</label>
+            <textarea id="assignmentAnswer" placeholder="What are you looking for in their answer?"></textarea>
+
+            <label>Upload Assignment PDF (Optional)</label>
+            <input type="file" id="assignmentFile" accept=".pdf">
+          </div>
+
+          <div id="aiAssignmentFields" style="display: none;">
+            <label>Assignment Topic/Title</label>
+            <input id="aiAssignmentTitle" placeholder="e.g. Basics of React Hooks">
+
+            <label>What should this cover?</label>
+            <textarea id="aiAssignmentContext" placeholder="e.g. Focused on useState and useEffect..."></textarea>
+
+            <div style="display: flex; gap: 15px;">
+              <div style="flex: 1;">
+                <label>Num Questions</label>
+                <input type="number" id="aiAssignmentNum" value="5" min="1" max="20">
+              </div>
+              <div style="flex: 1;">
+                <label>Difficulty</label>
+                <select id="aiAssignmentDiff">
+                  <option>Easy</option>
+                  <option selected>Intermediate</option>
+                  <option>Advanced</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div id="assignmentStatus" style="display: none; margin-top: 15px; text-align: center;">
+            <div class="spinner"></div>
+            <p>Processing assignment... Please wait.</p>
+          </div>
+
+          <div class="btn-row">
+            <button class="primary" id="btnAddAssignment" onclick="addAssignment()">Save Assignment</button>
+          </div>
+
+          <div class="items-list" id="assignmentsListContainer">
+            <h4>Existing Assignments</h4>
+            <div id="assignmentsList" class="empty-list">Select a topic to view assignments</div>
+          </div>
+        </div>
+
+        <!-- STEP 5: Add Quizzes -->
+        <div class="step-content" id="step-5">
+          <h3>Create Course Quizzes</h3>
+
+          <label>Select Course</label>
+          <select id="quizCourseSelect" onchange="loadTopicsForQuiz()"></select>
+
+          <label>Select Topic</label>
+          <select id="quizTopicSelect" onchange="loadQuizzesList()"></select>
+
+          <div style="margin-bottom: 1.5rem; background:var(--page-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+            <label style="margin-bottom: 10px;">Quiz Creation Method</label>
+            <div style="display: flex; gap: 20px;">
+              <label style="display: flex; align-items: center; gap: 8px; text-transform: none; cursor: pointer; font-weight: 500;">
+                <input type="radio" name="quizMethod" value="manual" checked onchange="toggleQuizInput('manual')" style="width: auto; margin: 0;"> 
+                <span>Manual Entry</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; text-transform: none; cursor: pointer; font-weight: 500;">
+                <input type="radio" name="quizMethod" value="ai" onchange="toggleQuizInput('ai')" style="width: auto; margin: 0;"> 
+                <span>✨ AI Generator</span>
+              </label>
+            </div>
+          </div>
+
+          <div id="manualQuizFields">
+            <label>Quiz Title</label>
+            <input id="quizTitle" placeholder="e.g. Python Basics Quiz">
+            
+            <label>Number of Questions</label>
+            <input type="number" id="quizNumQuestions" value="5" min="1" max="50">
+          </div>
+
+          <div id="aiQuizFields" style="display: none;">
+            <label>Quiz Title</label>
+            <input id="aiManualQuizTitle" placeholder="e.g. React Hooks Deep Dive">
+            
+            <label>Topic Coverage</label>
+            <textarea id="aiManualQuizDesc" placeholder="What should be covered?"></textarea>
+            
+            <div style="display: flex; gap: 15px;">
+              <div style="flex: 1;">
+                <label>Num Questions</label>
+                <input type="number" id="aiManualQuizNum" value="5" min="1" max="20">
+              </div>
+              <div style="flex: 1;">
+                <label>Difficulty</label>
+                <select id="aiManualQuizDiff">
+                  <option>Easy</option>
+                  <option selected>Intermediate</option>
+                  <option>Advanced</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div id="quizStatus" style="display: none; margin-top: 15px; text-align: center;">
+            <div class="spinner"></div>
+            <p>Processing quiz... Please wait.</p>
+          </div>
+
+          <div class="btn-row">
+            <button class="primary" id="btnCreateQuiz" onclick="handleQuizCreation()">Create Quiz</button>
+          </div>
+
+          <div class="items-list" id="quizzesListContainer">
+            <h4>Existing Quizzes</h4>
+            <div id="quizzesList" class="empty-list">Select a topic to view quizzes</div>
+          </div>
+        </div>
+
+        <!-- STEP 6: Quiz Questions -->
+        <div class="step-content" id="step-6">
+          <h3>Add Questions to Quiz</h3>
+
+          <label>Select Course</label>
+          <select id="questionCourseSelect" onchange="loadTopicsForQuestion()"></select>
+
+          <label>Select Topic</label>
+          <select id="questionTopicSelect" onchange="loadQuizzesForQuestion()"></select>
+
+          <label>Select Quiz</label>
+          <select id="questionQuizSelect"></select>
+
+          <div class="panel" style="background:var(--page-bg); border: 1px solid var(--border); padding: 20px; border-radius: 12px; margin-top: 20px;">
+            <label>Question Text</label>
+            <textarea id="questionText" placeholder="Enter the question here..."></textarea>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px;">
+              <div>
+                <label>Option A</label>
+                <input id="optionA" placeholder="Answer A">
+              </div>
+              <div>
+                <label>Option B</label>
+                <input id="optionB" placeholder="Answer B">
+              </div>
+              <div>
+                <label>Option C</label>
+                <input id="optionC" placeholder="Answer C">
+              </div>
+              <div>
+                <label>Option D</label>
+                <input id="optionD" placeholder="Answer D">
+              </div>
+            </div>
+
+            <label style="margin-top: 15px;">Correct Option</label>
+            <select id="correctOption">
+              <option value="A">Option A</option>
+              <option value="B">Option B</option>
+              <option value="C">Option C</option>
+              <option value="D">Option D</option>
+            </select>
+
+            <div class="btn-row" style="margin-top: 20px;">
+              <button class="primary" id="btnAddQuestion" onclick="addQuizQuestion()">+ Add Question to Quiz</button>
+            </div>
+          </div>
+
+          <div class="items-list" id="questionsListContainer" style="margin-top: 30px;">
+            <h4>Questions in this Quiz</h4>
+            <div id="questionsList" class="empty-list">Select a quiz to view questions</div>
+          </div>
+        </div>
+
+        <!-- STEP 7: Review & Manage -->
+        <div class="step-content" id="step-7">
+          <h3>Course Content Overview</h3>
+
+          <label>Select Course</label>
+          <select id="reviewCourseSelect" onchange="loadFullCoursePreview()"></select>
+
+          <div id="coursePreview" class="preview-container">
+            <div class="empty-list">Select a course to preview its structure</div>
+          </div>
+          
+          <div class="btn-row" style="margin-top: 30px;">
+             <button class="primary" onclick="window.location.href='courses.html'">Finish & Go to Courses</button>
+          </div>
+        </div>
+
+      </div><!-- end .form-card -->
+    </div>
+  </div>
+
+  <!-- View Modal -->
+  <div class="confirm-overlay" id="viewOverlay">
+    <div class="confirm-box" style="max-width: 600px; width: 90%;">
+      <h3 id="viewTitle">View Content</h3>
+      <div id="viewContent" style="max-height: 400px; overflow-y: auto; text-align: left; margin: 20px 0; padding: 15px; background:var(--page-bg); border-radius: 8px; border: 1px solid var(--border);">
+      </div>
+      <div class="btn-row">
+        <button class="primary" onclick="closeView()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast notification -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Confirm Delete Dialog -->
+  <div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-box">
+      <h4>Confirm Delete</h4>
+      <p id="confirmMsg">Are you sure you want to delete this item? This action cannot be undone.</p>
+      <div class="btn-row">
+        <button class="btn-ghost" onclick="closeConfirm()">Cancel</button>
+        <button class="btn-danger" id="confirmBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/theme-manager.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/add-course.js"></script>
+
+  <script src="../js/mobile-toggle.js"></script>
+</body>
+</html>

@@ -1,0 +1,143 @@
+
+let allCourses = [];
+
+document.addEventListener("DOMContentLoaded", () => {
+    loadAllCourses();
+    loadTeacherFilter();
+    
+    document.getElementById("courseSearch").addEventListener("input", renderCourses);
+    document.getElementById("teacherFilter").addEventListener("change", renderCourses);
+});
+
+async function loadAllCourses() {
+    const token = localStorage.getItem("token");
+    try {
+        const res = await fetch(`${API}/admin/courses`, {
+            headers: { Authorization: "Bearer " + token }
+        });
+        allCourses = await res.json();
+        renderCourses();
+    } catch (err) {
+        console.error("Courses load failed", err);
+    }
+}
+
+async function loadTeacherFilter() {
+    const token = localStorage.getItem("token");
+    try {
+        const res = await fetch(`${API}/admin/teachers`, {
+            headers: { Authorization: "Bearer " + token }
+        });
+        const teachers = await res.json();
+        const select = document.getElementById("teacherFilter");
+        teachers.forEach(t => {
+            const opt = document.createElement("option");
+            opt.value = t.id;
+            opt.textContent = t.name;
+            select.appendChild(opt);
+        });
+    } catch (err) {}
+}
+
+function renderCourses() {
+    const searchTerm = document.getElementById("courseSearch").value.toLowerCase();
+    const teacherId = document.getElementById("teacherFilter").value;
+    const grid = document.getElementById("coursesGrid");
+
+    const filtered = allCourses.filter(c => {
+        const matchesSearch = c.title.toLowerCase().includes(searchTerm) || c.teacher_name.toLowerCase().includes(searchTerm);
+        const matchesTeacher = teacherId === "all" || String(c.teacher_id) === String(teacherId);
+        return matchesSearch && matchesTeacher;
+    });
+
+    grid.innerHTML = filtered.map(c => `
+        <div class="course-card">
+            <div class="course-img">
+                ${c.logo ? `<img src="${getFileUrl(c.logo)}" alt="${c.title}">` : '<div style="height:100%; display:flex; align-items:center; justify-content:center; color:var(--muted);">No Thumbnail</div>'}
+                <span class="course-status-badge ${c.status ? 'badge-active' : 'badge-inactive'}">${c.status ? 'Live' : 'Draft'}</span>
+                <span class="course-teacher-badge">👨‍🏫 ${c.teacher_name}</span>
+            </div>
+            <div class="course-content">
+                <p class="course-difficulty">${c.difficulty || 'General'}</p>
+                <h3 class="course-title">${c.title}</h3>
+                <p class="course-desc">${c.description || 'No description provided.'}</p>
+                <div class="course-stats">
+                    <span>👥 ${c.enrolled_students} Students</span>
+                </div>
+            </div>
+            <div class="course-footer">
+                <button class="btn btn-ghost" onclick="toggleStatus(${c.id}, ${c.status})" title="Toggle Visibility">
+                    ${c.status ? '📁 Hide' : '🚀 Publish'}
+                </button>
+                <button class="btn btn-ghost" onclick="openAssignModal(${c.id}, '${c.teacher_name}')" title="Assign Teacher">👤 Assign</button>
+                <button class="btn btn-ghost" style="color:#ef4444;" onclick="deleteCourse(${c.id}, '${c.title}')" title="Delete Course">🗑</button>
+            </div>
+        </div>
+    `).join("") || '<div style="grid-column: 1/-1; text-align:center; padding:5rem; color:var(--muted);">No courses found matching your filters.</div>';
+}
+
+async function openAssignModal(courseId, currentTeacher) {
+    const token = localStorage.getItem("token");
+    try {
+        const res = await fetch(`${API}/admin/teachers`, {
+            headers: { Authorization: "Bearer " + token }
+        });
+        const teachers = await res.json();
+        
+        let promptMsg = `Currently assigned to: ${currentTeacher}\n\nSelect a new teacher by typing their ID:\n`;
+        teachers.forEach(t => {
+            promptMsg += `[ID: ${t.id}] - ${t.name}\n`;
+        });
+
+        const newId = prompt(promptMsg);
+        if (newId) {
+            assignTeacher(courseId, newId);
+        }
+    } catch (err) { alert("Failed to load teachers list"); }
+}
+
+async function assignTeacher(courseId, teacherId) {
+    const token = localStorage.getItem("token");
+    const formData = new FormData();
+    formData.append("teacher_id", teacherId);
+
+    const res = await fetch(`${API}/admin/courses/${courseId}/assign`, {
+        method: "PUT",
+        headers: { Authorization: "Bearer " + token },
+        body: formData
+    });
+
+    if (res.ok) {
+        alert("Teacher assigned successfully!");
+        loadAllCourses();
+    } else {
+        const err = await res.json();
+        alert(err.detail || "Failed to assign teacher");
+    }
+}
+
+async function toggleStatus(id, currentStatus) {
+    const token = localStorage.getItem("token");
+    const formData = new FormData();
+    formData.append("status", !currentStatus);
+
+    const res = await fetch(`${API}/admin/courses/${id}/status`, {
+        method: "PUT",
+        headers: { Authorization: "Bearer " + token },
+        body: formData
+    });
+
+    if (res.ok) loadAllCourses();
+}
+
+async function deleteCourse(id, title) {
+    if (!confirm(`Permanently delete "${title}"? All related topics, quizzes, and videos will be removed. This cannot be undone.`)) return;
+
+    const token = localStorage.getItem("token");
+    const res = await fetch(`${API}/admin/courses/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: "Bearer " + token }
+    });
+
+    if (res.ok) loadAllCourses();
+}

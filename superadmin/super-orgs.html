@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Organizations — Super Admin</title>
+  <link rel="stylesheet" href="../css/theme.css">
+  <link rel="stylesheet" href="../admin/css/main.css">
+  <script src="../js/config.js"></script>
+  <script src="../js/theme-manager.js"></script>
+  <style>
+    .org-card {
+      background: var(--white);
+      border-radius: 12px;
+      padding: 18px 22px;
+      border: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow);
+      transition: transform 0.15s;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .org-card:hover { transform: translateY(-2px); }
+    .org-name  { font-weight: 700; font-size: 16px; color: var(--ink); }
+    .org-email { color: var(--muted); font-size: 13px; margin-top: 3px; }
+    .org-id-badge {
+      font-size: 11px; background: var(--page-bg);
+      color: var(--muted); padding: 3px 10px;
+      border-radius: 20px; border: 1px solid var(--border);
+    }
+
+    /* Modal */
+    .modal {
+      display: none; position: fixed; z-index: 2000;
+      left: 0; top: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); backdrop-filter: blur(3px);
+    }
+    .modal.open { display: flex; align-items: center; justify-content: center; }
+    .modal-box {
+      background: var(--white); border-radius: 16px;
+      padding: 32px; width: 100%; max-width: 500px;
+      margin: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      max-height: 90vh; overflow-y: auto;
+    }
+    .modal-box h2 { font-size: 18px; font-weight: 700; color: var(--ink); margin-bottom: 22px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block; font-size: 12px; font-weight: 700;
+      color: var(--muted); text-transform: uppercase;
+      letter-spacing: 0.5px; margin-bottom: 6px;
+    }
+    .form-group input {
+      width: 100%; padding: 10px 14px;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      font-size: 14px; font-family: inherit;
+      color: var(--ink); background: var(--input-bg);
+      transition: border-color 0.2s; outline: none;
+    }
+    .form-group input:focus { border-color: var(--accent, #6366f1); }
+    .modal-actions { display: flex; gap: 10px; margin-top: 6px; }
+    .modal-actions button { flex: 1; }
+
+    .section-divider {
+      border: none; border-top: 1px dashed var(--border);
+      margin: 18px 0 16px;
+    }
+    .section-sub-title {
+      font-size: 13px; font-weight: 700; color: var(--ink);
+      margin-bottom: 14px;
+    }
+
+    .empty-state {
+      text-align: center; padding: 60px 20px;
+      color: var(--muted);
+    }
+    .empty-state span { font-size: 48px; display: block; margin-bottom: 12px; }
+
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: #111827; color: #fff;
+      padding: 12px 20px; border-radius: 10px;
+      font-size: 14px; font-weight: 600;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      z-index: 9999; display: none;
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div id="sidebar" class="sidebar"></div>
+  <div class="main-content">
+    <div id="navbar" class="navbar"></div>
+    <div class="page-content">
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:28px; flex-wrap:wrap; gap:12px;">
+        <div>
+          <h1 style="font-size:24px; font-weight:800; color:var(--ink); margin-bottom:4px;">Organizations</h1>
+          <p style="color:var(--muted); font-size:13px;">All registered organizations on the platform.</p>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="openModal()">+ Add Organization</button>
+          <button class="btn btn-ghost" id="manageOrgBtn">Manage</button>
+        </div>
+      </div>
+
+      <div id="orgsList"><p style="color:var(--muted);">Loading organizations…</p></div>
+
+    </div>
+  </div>
+
+  <!-- Add Org Modal -->
+  <div id="orgModal" class="modal">
+    <div class="modal-box">
+      <h2>➕ Add New Organization</h2>
+
+      <div id="modalError" style="display:none; background:#fee2e2; color:#dc2626; border-radius:8px; padding:10px 14px; font-size:13px; font-weight:600; margin-bottom:16px;"></div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Organization Name *</label>
+          <input type="text" id="newOrgName" placeholder="e.g. Acme Corp" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>Platform Title</label>
+          <input type="text" id="newOrgPlatform" placeholder="e.g. LearnHub" autocomplete="off">
+        </div>
+      </div>
+
+      <hr class="section-divider">
+      <div class="section-sub-title">🔐 Admin Account</div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Admin Full Name *</label>
+          <input type="text" id="newAdminName" placeholder="Full name" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>Admin Email *</label>
+          <input type="email" id="newAdminEmail" placeholder="admin@org.com" autocomplete="off">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Admin Password *</label>
+        <input type="password" id="newAdminPassword" placeholder="Set a strong password">
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="saveOrgBtn" onclick="addOrg()">Create Organization</button>
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="js/super-layout.js"></script>
+  <script>
+    let manageMode = false;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadOrgs();
+      document.getElementById("manageOrgBtn").addEventListener("click", function () {
+        manageMode = !manageMode;
+        this.textContent = manageMode ? "Done" : "Manage";
+        this.className = manageMode ? "btn btn-primary" : "btn btn-ghost";
+        loadOrgs();
+      });
+    });
+
+    async function loadOrgs() {
+      try {
+        const res = await fetch(`${SUPER_API}/organizations`, {
+          headers: { Authorization: "Bearer " + token }
+        });
+        const orgs = await res.json();
+        const list = document.getElementById("orgsList");
+
+        if (!Array.isArray(orgs) || orgs.length === 0) {
+          list.innerHTML = `<div class="empty-state"><span>🏢</span><p>No organizations yet. Add your first one above.</p></div>`;
+          return;
+        }
+
+        list.innerHTML = orgs.map(o => `
+          <div class="org-card">
+            <div>
+              <div class="org-name">${o.name}</div>
+              <div class="org-email">${o.email || "—"}</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+              <span class="org-id-badge">ID: ${o.id}</span>
+              ${manageMode ? `<button class="btn btn-danger" style="padding:7px 14px; font-size:13px;" onclick="deleteOrg(${o.id}, '${o.name.replace(/'/g,"\\'")}')">Delete</button>` : ""}
+            </div>
+          </div>
+        `).join("");
+      } catch (e) {
+        document.getElementById("orgsList").innerHTML = `<p style="color:#ef4444;">Failed to load organizations.</p>`;
+        console.error(e);
+      }
+    }
+
+    async function deleteOrg(id, name) {
+      if (!confirm(`Delete "${name}"? This will also remove all its users.`)) return;
+      try {
+        const res = await fetch(`${SUPER_API}/organizations/${id}`, {
+          method: "DELETE",
+          headers: { Authorization: "Bearer " + token }
+        });
+        if (res.ok) {
+          showToast("Organization deleted");
+          loadOrgs();
+        } else {
+          const d = await res.json();
+          alert(d.detail || "Failed to delete organization.");
+        }
+      } catch (e) {
+        alert("Error deleting organization.");
+      }
+    }
+
+    function openModal() {
+      document.getElementById("orgModal").classList.add("open");
+      document.getElementById("modalError").style.display = "none";
+    }
+    function closeModal() {
+      document.getElementById("orgModal").classList.remove("open");
+      ["newOrgName","newOrgPlatform","newAdminName","newAdminEmail","newAdminPassword"]
+        .forEach(id => { document.getElementById(id).value = ""; });
+    }
+
+    async function addOrg() {
+      const name     = document.getElementById("newOrgName").value.trim();
+      const platform = document.getElementById("newOrgPlatform").value.trim();
+      const adminName  = document.getElementById("newAdminName").value.trim();
+      const adminEmail = document.getElementById("newAdminEmail").value.trim();
+      const adminPass  = document.getElementById("newAdminPassword").value;
+      const btn  = document.getElementById("saveOrgBtn");
+      const errEl = document.getElementById("modalError");
+
+      errEl.style.display = "none";
+
+      if (!name || !adminName || !adminEmail || !adminPass) {
+        errEl.textContent = "Organization name, admin name, email and password are required.";
+        errEl.style.display = "block";
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Creating…";
+      try {
+        const res = await fetch(`${SUPER_API}/organizations`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token
+          },
+          body: JSON.stringify({
+            name,
+            platform_name: platform || name,
+            admin_name: adminName,
+            admin_email: adminEmail,
+            admin_password: adminPass
+          })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          closeModal();
+          showToast("Organization created successfully");
+          loadOrgs();
+        } else {
+          errEl.textContent = data.detail || "Error creating organization.";
+          errEl.style.display = "block";
+        }
+      } catch (e) {
+        errEl.textContent = "Network error. Please try again.";
+        errEl.style.display = "block";
+      }
+      btn.disabled = false;
+      btn.textContent = "Create Organization";
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.style.display = "block";
+      setTimeout(() => { t.style.display = "none"; }, 3000);
+    }
+
+    // Close modal on backdrop click
+    document.getElementById("orgModal").addEventListener("click", function(e) {
+      if (e.target === this) closeModal();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Directory — Admin Portal</title>
+  <link rel="stylesheet" href="../css/theme.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/portal-admin.css">
+  <script src="../js/config.js"></script>
+  <script src="../js/theme-manager.js"></script>
+  <link rel="stylesheet" href="../css/mobile.css">
+</head>
+<body>
+  <div id="sidebar" class="sidebar"></div>
+  <div class="main-content">
+    <div id="navbar" class="navbar"></div>
+    <main class="page-content">
+
+      <div class="page-header-row">
+        <div>
+          <h1>Student Directory</h1>
+          <p>All students — performance, risk, and activity at a glance.</p>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-secondary-alt" onclick="document.getElementById('bulkImportInput').click()" style="display:flex;align-items:center;gap:8px;padding: 10px 20px;">
+                <span>📤</span> Bulk Import
+            </button>
+            <input type="file" id="bulkImportInput" style="display:none" accept=".csv, .xlsx, .xls" onchange="handleBulkImport(event)">
+            <button class="btn btn-primary" id="exportBtn" onclick="exportReport()" style="display:flex;align-items:center;gap:8px;min-width:180px;justify-content:center;">
+                <span id="exportIcon">📥</span>&nbsp;Export Full Report
+            </button>
+        </div>
+      </div>
+
+      <div class="summary-bar">
+        <div class="sum-card"><div class="sum-label">Total Students</div><div class="sum-value" id="sumTotal">—</div></div>
+        <div class="sum-card"><div class="sum-label">High Risk</div><div class="sum-value" style="color:#dc2626" id="sumHigh">—</div></div>
+        <div class="sum-card"><div class="sum-label">Strong Performers</div><div class="sum-value" style="color:#16a34a" id="sumStrong">—</div></div>
+        <div class="sum-card"><div class="sum-label">Certs Issued</div><div class="sum-value" style="color:#7c3aed" id="sumCerts">—</div></div>
+      </div>
+
+      <div class="table-wrap">
+        <div class="filters-row">
+          <input type="text" id="searchInput" placeholder="🔍  Name or email…" oninput="render()" autocomplete="off">
+          <select id="courseFilter" onchange="render()"><option value="all">All Courses</option></select>
+          <select id="levelFilter"  onchange="render()">
+            <option value="all">All Levels</option>
+            <option>Strong</option><option>Average</option><option>Weak</option>
+          </select>
+          <select id="riskFilter" onchange="render()">
+            <option value="all">All Risk</option>
+            <option value="High">High Risk</option>
+            <option value="Medium">Medium Risk</option>
+            <option value="Low">Low Risk</option>
+          </select>
+          <select id="statusFilter" onchange="render()">
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Student</th><th>Courses</th><th>Overall</th>
+              <th>AI Level</th><th>Risk</th><th>Certs</th>
+              <th>Joined</th><th>Status</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+            <tr><td colspan="9" class="empty-row">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/layout.js"></script>
+  <script>
+    
+    let all = [];
+
+    document.addEventListener("DOMContentLoaded", () => { load(); loadCourses(); });
+
+    async function load() {
+      try {
+        const res = await fetch(`${API}/admin/students`, { headers: { Authorization: "Bearer " + token } });
+        all = await res.json();
+        document.getElementById("sumTotal").textContent  = all.length;
+        document.getElementById("sumHigh").textContent   = all.filter(s => s.dropout_risk === "High").length;
+        document.getElementById("sumStrong").textContent = all.filter(s => s.learner_level === "Strong").length;
+        document.getElementById("sumCerts").textContent  = all.reduce((n,s) => n + (s.certs_issued||0), 0);
+        render();
+      } catch(e) {
+        document.getElementById("tbody").innerHTML = '<tr><td colspan="9" class="empty-row">Failed to load.</td></tr>';
+      }
+    }
+
+    async function loadCourses() {
+      try {
+        const res = await fetch(`${API}/admin/courses`, { headers: { Authorization: "Bearer " + token } });
+        const courses = await res.json();
+        const sel = document.getElementById("courseFilter");
+        courses.forEach(c => { const o = document.createElement("option"); o.value = c.title; o.textContent = c.title; sel.appendChild(o); });
+      } catch(e) {}
+    }
+
+    function render() {
+      const q      = document.getElementById("searchInput").value.toLowerCase();
+      const course = document.getElementById("courseFilter").value;
+      const level  = document.getElementById("levelFilter").value;
+      const risk   = document.getElementById("riskFilter").value;
+      const status = document.getElementById("statusFilter").value;
+
+      const list = all.filter(s => {
+        if (q && !s.name.toLowerCase().includes(q) && !s.email.toLowerCase().includes(q)) return false;
+        if (course !== "all" && s.main_course !== course) return false;
+        if (level  !== "all" && s.learner_level !== level) return false;
+        if (risk   !== "all" && s.dropout_risk  !== risk)  return false;
+        if (status === "active"   && !s.is_active) return false;
+        if (status === "inactive" &&  s.is_active) return false;
+        return true;
+      });
+
+      const body = document.getElementById("tbody");
+      if (!list.length) { body.innerHTML = '<tr><td colspan="9" class="empty-row">No students match your filters.</td></tr>'; return; }
+
+      const scoreColor = v => v >= 70 ? "#16a34a" : v >= 40 ? "#d97706" : "#dc2626";
+
+      body.innerHTML = list.map(s => `
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div class="s-avatar">${s.name.charAt(0).toUpperCase()}</div>
+              <div>
+                <div style="font-weight:700;color:var(--ink);">${s.name}</div>
+                <div style="font-size:12px;color:var(--muted);">${s.email}</div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div style="font-weight:600;">${s.course_count} course${s.course_count!==1?'s':''}</div>
+            <div style="font-size:12px;color:var(--muted);max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.main_course}</div>
+          </td>
+          <td><span style="font-weight:800;font-size:17px;color:${scoreColor(s.overall_score)};">${s.overall_score}%</span></td>
+          <td><span class="lvl-badge lvl-${(s.learner_level||'weak').toLowerCase()}">${s.learner_level}</span></td>
+          <td><span class="risk-badge risk-${(s.dropout_risk||'low').toLowerCase()}">${s.dropout_risk} Risk</span></td>
+          <td style="font-weight:700;color:#7c3aed;text-align:center;">${s.certs_issued||0}</td>
+          <td style="font-size:13px;color:var(--muted);">${s.joined||"—"}</td>
+          <td>
+            <span class="status-dot ${s.is_active?'dot-on':'dot-off'}"></span>
+            <span style="font-size:13px;">${s.is_active?"Active":"Inactive"}</span>
+          </td>
+          <td><button class="btn-view" onclick="location.href='student-detail.html?id=${s.id}'">View →</button></td>
+        </tr>`).join("");
+    }
+
+    async function exportReport() {
+      const btn  = document.getElementById("exportBtn");
+      const icon = document.getElementById("exportIcon");
+      if (!btn) return;
+
+      btn.disabled = true;
+      icon.textContent = "⏳";
+      btn.childNodes[2].textContent = " Generating…";
+
+      try {
+        const res = await fetch(`${API}/admin/students/export`, {
+          headers: { Authorization: "Bearer " + token }
+        });
+        if (!res.ok) { alert("Export failed. No student data available."); return; }
+        const blob  = await res.blob();
+        const url   = URL.createObjectURL(blob);
+        const a     = document.createElement("a");
+        const cd    = res.headers.get("Content-Disposition") || "";
+        const match = cd.match(/filename="?([^"]+)"?/);
+        a.download  = match ? match[1] : "Platform_Students.xlsx";
+        a.href      = url;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch(e) {
+        alert("Export failed: " + e.message);
+      } finally {
+        btn.disabled = false;
+        icon.textContent = "📥";
+        btn.childNodes[2].textContent = " Export Full Report";
+      }
+    }
+
+    async function handleBulkImport(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const token = localStorage.getItem("token");
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        const res = await fetch(`${API}/admin/bulk-import`, {
+          method: "POST",
+          headers: { Authorization: "Bearer " + token },
+          body: formData
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          let msg = `Bulk Import Complete!\n- Created: ${data.created}\n- Errors: ${data.errors.length}`;
+          if (data.errors.length > 0) {
+            msg += `\n\nFirst few errors:\n` + data.errors.slice(0, 3).map(e => `${e.email}: ${e.error}`).join('\n');
+          }
+          alert(msg);
+          load();
+        } else {
+          const err = await res.json();
+          alert(err.detail || "Failed to import users");
+        }
+      } catch (err) { alert("Server error: " + err.message); }
+      
+      // Reset file input
+      event.target.value = "";
+    }
+  </script>
+  <script src="../js/mobile-toggle.js"></script>
+</body>
+</html>
