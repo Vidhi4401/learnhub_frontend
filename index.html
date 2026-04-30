@@ -677,7 +677,6 @@
             box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
         }
     </style>
-  <link rel="stylesheet" href="css/mobile.css">
 </head>
 
 <body>
@@ -919,7 +918,43 @@
         </footer>
     </main>
 
-    <script src="./js/config.js"></script>
+    <script src="js/config.js"></script>
+
+  <script>
+    // ── Auto redirect if already logged in ──
+    (function() {
+      const token = localStorage.getItem('access_token');
+      if (!token) return; // no token — stay on landing page
+
+      // Check token not expired
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const now = Math.floor(Date.now() / 1000);
+        if (payload.exp < now) {
+          // Expired — clear and stay on landing
+          localStorage.clear();
+          return;
+        }
+
+        // Valid token — redirect based on role
+        const role = localStorage.getItem('role') || payload.role;
+        const redirectMap = {
+          'superadmin' : '/superadmin/super-dashboard.html',
+          'admin'      : '/admin/dashboard.html',
+          'teacher'    : '/teacher/dashboard.html',
+          'student'    : '/student/student-courses.html',
+        };
+
+        const dest = redirectMap[role];
+        if (dest) window.location.replace(dest);
+
+      } catch(e) {
+        // Bad token — clear it
+        localStorage.clear();
+      }
+    })();
+  </script>
+
   <script>
         // Contact Modal
         function openContactModal() {
@@ -947,7 +982,7 @@
                 admin_password: formData.get('adminPassword')
             };
 
-            fetch(`${API_BASE}/superadmin/contact`, {
+            fetch(`${API_BASE}/api/v1/superadmin/contact`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -973,7 +1008,7 @@
         });
     </script>
 
-  <script>
+    <script>
         // Active nav link on scroll
         window.addEventListener('scroll', () => {
             let current = '';
