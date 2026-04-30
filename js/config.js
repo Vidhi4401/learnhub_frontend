@@ -115,12 +115,11 @@ function checkSession() {
 
 // Global fetch wrapper — catches 401 from any API call
 const _originalFetch = window.fetch;
-window.fetch = async function(...args) {
-  const response = await _originalFetch(...args);
+window.fetch = async function(url, options = {}) {
+  const response = await _originalFetch(url, options);
 
   if (response.status === 401) {
     const loginPage = getLoginPage();
-    // Don't redirect if already on login page
     if (!window.location.pathname.includes('auth.html') &&
         !window.location.pathname.includes('super-login.html')) {
       localStorage.clear();
@@ -132,6 +131,8 @@ window.fetch = async function(...args) {
 
   return response;
 };
+
+
 
 // Run session check on every page load
 document.addEventListener('DOMContentLoaded', checkSession);
